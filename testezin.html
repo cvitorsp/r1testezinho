@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel R1</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            overflow: hidden;
+        }
+
+        /* Animações e Efeitos */
+        @keyframes shake { 0%, 100% {transform: translateX(0);} 10%, 30%, 50%, 70%, 90% {transform: translateX(-5px);} 20%, 40%, 60%, 80% {transform: translateX(5px);} }
+        .shake { animation: shake 0.5s ease-in-out; }
+
+        .animated-gradient { background: linear-gradient(-45deg, #111827, #1f2937, #374151, #4b5563); background-size: 400% 400%; animation: gradientBG 15s ease infinite; }
+        @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+        #loginButton, .register-button { transition: all 0.2s ease-in-out; }
+
+        .prank-tooltip { visibility: hidden; opacity: 0; transition: opacity 0.3s; }
+        .show-tooltip { visibility: visible; opacity: 1; }
+
+        .custom-cursor { width: 30px; height: 30px; border: 2px solid #f87171; border-radius: 50%; position: fixed; transform: translate(-50%, -50%); pointer-events: none; transition: all 0.1s ease; z-index: 9999; backdrop-filter: hue-rotate(90deg); }
+        
+        /* Dashboard styles */
+        .news-card { transition: transform 0.4s ease-in-out; }
+        .news-card:hover { transform: translateY(-5px) scale(1.02); }
+
+        @keyframes drift { 0% { transform: translate(0, 0); } 25% { transform: translate(5px, 5px); } 50% { transform: translate(0, 10px); } 75% { transform: translate(-5px, 5px); } 100% { transform: translate(0, 0); } }
+        .drifting { animation: drift 20s ease-in-out infinite; }
+
+        @keyframes wobble { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(-0.5deg); } 75% { transform: rotate(0.5deg); } }
+        .wobble-container { animation: wobble 10s ease-in-out infinite; transition: filter 2s ease; }
+        .dashboard-chaotic { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><text y="28" font-size="28">🤡</text></svg>'), auto; }
+
+        .ticker-wrap { position: absolute; top: 0; left: 0; width: 100%; overflow: hidden; background-color: #ef4444; color: white; padding: 8px 0; white-space: nowrap; box-sizing: border-box; }
+        .ticker-move { display: inline-block; white-space: nowrap; padding-left: 100%; animation: ticker 30s linear infinite; }
+        @keyframes ticker { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-100%, 0, 0); } }
+
+        .focus-mode-active #news-grid { filter: blur(8px) grayscale(1); pointer-events: none; }
+
+        #news-modal-content { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        
+        .trail { position: absolute; height: 6px; width: 6px; border-radius: 50%; background: white; pointer-events: none; z-index: 10000; opacity: 0; animation: trail-fade 0.5s linear forwards; }
+        @keyframes trail-fade { 0% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(0); } }
+
+        #virus-scan-popup { animation: slideIn 0.5s ease-out; }
+        @keyframes slideIn { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    </style>
+</head>
+<body class="animated-gradient text-white flex items-center justify-center min-h-screen p-4">
+
+    <div id="customCursor" class="custom-cursor"></div>
+
+    <!-- Container Principal (Login/Registro) -->
+    <div id="auth-container" class="w-full max-w-md bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-2xl p-8 transition-all duration-500">
+        <div class="flex justify-center mb-6">
+            <img src="https://i.imgur.com/hFD7PIs.png" alt="Logo" id="logo" class="w-32 h-auto drop-shadow-lg cursor-pointer">
+        </div>
+        <div class="flex border-b border-gray-700 mb-6">
+            <button id="login-tab" class="flex-1 py-2 text-center font-semibold border-b-2 border-purple-500 text-purple-400 transition-colors duration-300">Entrar</button>
+            <button id="register-tab" class="flex-1 py-2 text-center font-semibold border-b-2 border-transparent text-gray-400 hover:text-white transition-colors duration-300">Registrar</button>
+        </div>
+
+        <!-- Formulário de Login -->
+        <form id="login-form">
+            <h2 class="text-2xl font-bold mb-6 text-center">Faça o login... se puder.</h2>
+            <div class="mb-4 relative">
+                <label for="login-email" class="block mb-2 text-sm font-medium text-gray-300">Seu E-mail</label>
+                <input type="email" id="login-email" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-purple-500 focus:border-purple-500 transition-transform duration-200" placeholder="voce@dominio.com" required>
+            </div>
+            <div class="mb-6 relative">
+                <label for="login-password" class="block mb-2 text-sm font-medium text-gray-300">Sua Senha</label>
+                <input type="password" id="login-password" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-purple-500 focus:border-purple-500" placeholder="••••••••" required>
+                <a href="#" id="forgot-password" class="text-xs text-purple-400 hover:underline mt-2 block text-right">Esqueci minha senha</a>
+            </div>
+            <button id="loginButton" type="submit" class="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-300">Entrar</button>
+        </form>
+
+        <!-- Formulário de Registro -->
+        <form id="register-form" class="hidden">
+            <h2 class="text-2xl font-bold mb-6 text-center">Complete seu cadastro.</h2>
+            <div class="mb-4">
+                <label for="register-name" class="block mb-2 text-sm font-medium text-gray-300">Nome Completo</label>
+                <input type="text" id="register-name" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-pink-500 focus:border-pink-500" placeholder="Insira seu nome..." required>
+                <p id="name-guesser" class="text-xs mt-1 h-4 text-pink-400 font-mono"></p>
+            </div>
+            <div class="mb-4">
+                <label for="register-email" class="block mb-2 text-sm font-medium text-gray-300">Seu E-mail de "Trabalho"</label>
+                <input type="email" id="register-email" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-pink-500 focus:border-pink-500" placeholder="seu.email@dominio.com" required>
+                <p id="email-roast" class="text-xs mt-1 h-4 text-yellow-400 font-mono"></p>
+            </div>
+            <div class="mb-4 relative"><label for="register-password" class="block mb-2 text-sm font-medium text-gray-300">Crie uma senha</label><input type="password" id="register-password" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-pink-500 focus:border-pink-500" placeholder="••••••••" required><div id="fake-reveal" class="absolute inset-y-0 right-0 top-6 pr-3 flex items-center text-sm leading-5 cursor-pointer text-gray-400">👀</div><p id="password-strength" class="text-xs mt-1 text-gray-400">Força da senha: ?</p></div>
+            <div class="flex items-start mb-6"><div class="flex items-center h-5"><input id="terms" type="checkbox" value="" class="w-4 h-4 border border-gray-600 rounded bg-gray-700 focus:ring-3 focus:ring-pink-600"></div><label for="terms" class="ml-2 text-sm font-medium text-gray-400">Eu li e concordo com os <a href="#" id="terms-link" class="text-pink-500 hover:underline">Termos de Serviço</a>.</label></div>
+            <button type="submit" class="register-button w-full bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-300">Registrar</button>
+        </form>
+    </div>
+    
+    <!-- Container do Dashboard (inicialmente oculto) -->
+    <div id="dashboard-container" class="hidden w-full h-full max-w-7xl mx-auto bg-gray-900/50 backdrop-blur-md rounded-2xl shadow-2xl p-8 transition-all duration-500 overflow-y-auto relative">
+        <div id="loader" class="text-center">
+             <h2 class="text-3xl font-bold text-purple-400 mb-4 animate-pulse">Carregando Sistema...</h2>
+             <div class="w-full bg-gray-700 rounded-full h-4 mb-4"><div id="progress-bar" class="bg-purple-600 h-4 rounded-full" style="width: 0%"></div></div>
+             <p id="loader-message" class="text-gray-400">Sincronizando com o servidor principal...</p>
+        </div>
+        
+        <div id="dashboard-content" class="hidden">
+            <!-- Ticker de Notícias Urgentes -->
+            <div class="ticker-wrap">
+                <div class="ticker-move">
+                    <span class="font-bold mr-4">URGENTE:</span> Estudo revela: gatos planejam dominação mundial através de vídeos fofos.
+                    <span class="mx-8 font-bold">||</span>
+                    <span class="font-bold mr-4">ECONOMIA:</span> Preço do pão de queijo pode disparar após descoberta de minas de queijo em Marte.
+                    <span class="mx-8 font-bold">||</span>
+                    <span class="font-bold mr-4">TECNOLOGIA:</span> Nova IA consegue prever o final de um filme com 99% de precisão, estragando a surpresa de todos.
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center mb-6 pt-12">
+                <h1 id="dashboard-title" class="text-4xl font-bold transition-transform duration-200">Painel do Jornal R1</h1>
+                <div class="flex items-center space-x-4">
+                    <button id="focus-mode-button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">Modo Foco</button>
+                    <button id="logout-button" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">Sair</button>
+                </div>
+            </div>
+            <div id="news-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Skeleton loaders -->
+                <div class="bg-gray-800 p-4 rounded-lg shadow-lg animate-pulse"><div class="w-full h-40 bg-gray-700 rounded-md mb-4"></div><div class="h-6 bg-gray-700 rounded w-3/4"></div></div>
+                <div class="bg-gray-800 p-4 rounded-lg shadow-lg animate-pulse"><div class="w-full h-40 bg-gray-700 rounded-md mb-4"></div><div class="h-6 bg-gray-700 rounded w-3/4"></div></div>
+                <div class="bg-gray-800 p-4 rounded-lg shadow-lg animate-pulse"><div class="w-full h-40 bg-gray-700 rounded-md mb-4"></div><div class="h-6 bg-gray-700 rounded w-3/4"></div></div>
+            </div>
+        </div>
+        
+        <div id="virus-scan-popup" class="hidden fixed bottom-4 right-4 bg-gray-900 border-2 border-red-500 rounded-lg shadow-2xl w-80 z-[70] p-4 text-sm font-mono">
+            <div class="flex justify-between items-center mb-2">
+                <h4 class="text-red-500 font-bold">ALERTA DE SEGURANÇA</h4>
+                <span class="text-white animate-ping">🔴</span>
+            </div>
+            <p class="text-gray-300">Scan do sistema em progresso...</p>
+            <div class="w-full bg-gray-700 rounded-full h-2.5 my-2">
+                <div id="virus-scan-bar" class="bg-red-600 h-2.5 rounded-full" style="width: 0%"></div>
+            </div>
+            <p id="virus-scan-threat" class="text-yellow-400 h-4"></p>
+            <button id="virus-scan-close" class="text-xs text-gray-500 hover:text-white mt-2">Ignorar Risco (Não recomendado)</button>
+        </div>
+    </div>
+    
+    <!-- Pop-up chato -->
+    <div id="annoying-popup" class="hidden fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 bg-white text-gray-800 p-6 rounded-lg shadow-2xl z-50">
+        <button id="close-popup" class="absolute top-2 right-2 text-2xl font-bold">&times;</button>
+        <h3 class="text-lg font-bold mb-2">Oferta Exclusiva!</h3>
+        <p>Parabéns, usuário! Você foi selecionado. Clique <a href="#" id="scam-link" class="text-blue-600 underline">aqui</a> para saber mais.</p>
+    </div>
+    
+    <!-- Modal para ler notícia -->
+    <div id="news-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-[60]">
+        <div id="news-modal-content" class="bg-gray-800 text-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 relative">
+             <button id="close-modal" class="absolute top-4 right-4 text-2xl font-bold text-gray-400 hover:text-white">&times;</button>
+             <h2 id="modal-title" class="text-2xl font-bold mb-4">Carregando matéria...</h2>
+             <div id="modal-image" class="w-full h-64 bg-gray-700 rounded-md mb-4 bg-cover bg-center"></div>
+             <div id="modal-content" class="prose prose-invert max-w-none text-gray-300">
+                <p>Por favor, aguarde enquanto buscamos o conteúdo completo do artigo.</p>
+             </div>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Elementos da UI
+            const authContainer = document.getElementById('auth-container');
+            const dashboardContainer = document.getElementById('dashboard-container');
+            const loginForm = document.getElementById('login-form');
+            const registerForm = document.getElementById('register-form');
+            const loginTab = document.getElementById('login-tab');
+            const registerTab = document.getElementById('register-tab');
+            const loginButton = document.getElementById('loginButton');
+            
+            console.log("Sistema iniciado. Todos os parâmetros operando normalmente. Código: 8008135.");
+
+            // --- Lógica das Abas ---
+            loginTab.addEventListener('click', () => {
+                loginForm.classList.remove('hidden');
+                registerForm.classList.add('hidden');
+                loginTab.classList.add('border-purple-500', 'text-purple-400');
+                loginTab.classList.remove('border-transparent', 'text-gray-400');
+                registerTab.classList.add('border-transparent', 'text-gray-400');
+                registerTab.classList.remove('border-pink-500', 'text-pink-400');
+            });
+
+            registerTab.addEventListener('click', () => {
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+                registerTab.classList.add('border-pink-500', 'text-pink-400');
+                registerTab.classList.remove('border-transparent', 'text-gray-400');
+                loginTab.classList.add('border-transparent', 'text-gray-400');
+                loginTab.classList.remove('border-purple-500', 'text-purple-400');
+                startNameGuesser();
+            });
+
+            // --- PEGADINHAS DA TELA DE LOGIN ---
+
+            // 1. Botão de Login Fujão
+            let runawayCounter = 0;
+            loginButton.addEventListener('mouseover', () => {
+                if (runawayCounter < 5) {
+                    const containerRect = authContainer.getBoundingClientRect();
+                    const buttonRect = loginButton.getBoundingClientRect();
+                    const newTop = Math.random() * (containerRect.height - buttonRect.height);
+                    const newLeft = Math.random() * (containerRect.width - buttonRect.width);
+                    loginButton.style.position = 'absolute';
+                    loginButton.style.top = `${newTop}px`;
+                    loginButton.style.left = `${newLeft}px`;
+                    runawayCounter++;
+                } else {
+                    loginButton.innerHTML = "Ok, você venceu. Pode clicar.";
+                }
+            });
+            loginButton.addEventListener('click', () => {
+                loginButton.style.position = 'relative';
+                loginButton.style.top = 'auto';
+                loginButton.style.left = 'auto';
+             });
+            
+            // 2. Input de email fujão
+            const emailInput = document.getElementById('login-email');
+            emailInput.addEventListener('mouseenter', () => {
+                 emailInput.style.transform = 'translateX(15px)';
+            });
+             emailInput.addEventListener('mouseleave', () => {
+                 emailInput.style.transform = 'translateX(0px)';
+            });
+
+            // 3. Revelar Senha Falso
+            document.getElementById('fake-reveal').addEventListener('click', () => {
+                alert('Ação bloqueada por políticas de segurança.');
+            });
+
+            // 4. Esqueci minha senha
+            document.getElementById('forgot-password').addEventListener('click', (e) => { e.preventDefault(); alert('Função de recuperação de senha temporariamente indisponível. Tente lembrar.'); });
+
+            // 5. Ofensa com base no E-mail
+            const registerEmailInput = document.getElementById('register-email');
+            const emailRoastEl = document.getElementById('email-roast');
+            registerEmailInput.addEventListener('blur', () => {
+                const email = registerEmailInput.value.toLowerCase();
+                let roast = '';
+                if (email.includes('@gmail.')) {
+                    roast = 'Análise: usuário comum. Nível de ameaça: baixo.';
+                } else if (email.includes('@hotmail.') || email.includes('@outlook.')) {
+                    roast = 'Análise: artefato histórico detectado. Cuidado.';
+                } else if (email.includes('@yahoo.')) {
+                    roast = 'Análise: Fóssil digital. Incrível!';
+                } else if (email.length > 0) {
+                    roast = 'Análise: email corporativo? Você se acha importante?';
+                }
+                emailRoastEl.textContent = roast;
+            });
+            
+            // 6. Força da Senha Engraçada
+            const passwordInput = document.getElementById('register-password');
+            const passwordStrength = document.getElementById('password-strength');
+            const strengthMessages = ['Força: Senha de vovó', 'Força: Meu sobrinho de 5 anos faria melhor', 'Força: Quase lá, só que não', 'Força: Digna de um mestre... dos magos', 'Força: Nível Super Sayajin!'];
+            passwordInput.addEventListener('input', () => {
+                 const length = passwordInput.value.length;
+                 if (length === 0) { passwordStrength.textContent = 'Força da senha: ?'; }
+                 else { passwordStrength.textContent = strengthMessages[Math.min(Math.floor(length / 4), 4)]; }
+            });
+
+            // 7. Checkbox Impossível dos Termos
+            const termsCheckbox = document.getElementById('terms');
+            let termsClickCount = 0;
+            termsCheckbox.addEventListener('click', (e) => {
+                e.preventDefault(); termsClickCount++;
+                if (termsClickCount < 3) { alert(`Erro de validação. Por favor, releia os termos e tente novamente. (Código de erro: ${Math.random()})`); }
+                else { alert('Validação de leitura concluída.'); termsCheckbox.checked = true; }
+            });
+            document.getElementById('terms-link').addEventListener('click', (e) => { e.preventDefault(); alert('Os termos de serviço estão sendo atualizados. Tente novamente mais tarde.'); });
+            
+            // 8. Clicar no logo
+            let logoClicks = 0;
+            document.getElementById('logo').addEventListener('click', () => {
+                logoClicks++;
+                if(logoClicks === 5) {
+                    document.body.style.filter = 'invert(1)';
+                    alert('MODO DE ALTO CONTRASTE ATIVADO.');
+                    setTimeout(() => document.body.style.filter = '', 2000);
+                    logoClicks = 0;
+                }
+            });
+
+            // 9. Adivinhador de Nomes Caótico
+            const nameGuesserEl = document.getElementById('name-guesser');
+            const registerNameInput = document.getElementById('register-name');
+            const namesToGuess = ["QUEM É VC?", "LOKI????", "VAGABUNDA!", "É O DRAKETM?", "AH NAO.. ASHLEY?", "SERA Q É O NOVATO??", "UM INVASOR??", "ESPERA... EU TE CONHEÇO."];
+            let nameGuesserInterval;
+
+            function typeWriter(text, i, callback) {
+                if (i < text.length) {
+                    let char = text.substring(i, i + 1);
+                    if (Math.random() > 0.95) char = "█"; // Glitch effect
+                    nameGuesserEl.innerHTML = text.substring(0, i) + char + '<span class="animate-ping">_</span>';
+                    setTimeout(() => typeWriter(text, i + 1, callback), 80);
+                } else {
+                    if (callback) setTimeout(callback, 1000);
+                }
+            }
+            
+            function startNameGuesser() {
+                if (nameGuesserInterval) clearInterval(nameGuesserInterval);
+                let currentNameIndex = 0;
+                
+                const cycleNames = () => {
+                    typeWriter(namesToGuess[currentNameIndex], 0, () => {
+                         currentNameIndex = (currentNameIndex + 1) % namesToGuess.length;
+                    });
+                };
+                
+                cycleNames(); // Start immediately
+                nameGuesserInterval = setInterval(cycleNames, 3000);
+            }
+
+            registerNameInput.addEventListener('focus', startNameGuesser);
+            registerNameInput.addEventListener('blur', () => clearInterval(nameGuesserInterval));
+
+
+            // --- Lógica de Submissão e Transição para o Dashboard ---
+            const handleFormSubmit = (e) => {
+                e.preventDefault();
+                authContainer.classList.add('animate-pulse');
+                setTimeout(() => {
+                    authContainer.classList.add('hidden');
+                    dashboardContainer.classList.remove('hidden');
+                    startDashboardLoading();
+                }, 1000);
+            };
+
+            loginForm.addEventListener('submit', handleFormSubmit);
+            registerForm.addEventListener('submit', handleFormSubmit);
+
+            // --- LÓGICA DO DASHBOARD E PEGADINHAS ---
+            
+            function startDashboardLoading() {
+                const progressBar = document.getElementById('progress-bar');
+                const loaderMessage = document.getElementById('loader-message');
+                let width = 0;
+                const interval = setInterval(() => {
+                    if (width >= 100) {
+                        clearInterval(interval);
+                        loaderMessage.textContent = "Conexão estabelecida.";
+                        setTimeout(() => {
+                            document.getElementById('loader').classList.add('hidden');
+                            document.getElementById('dashboard-content').classList.remove('hidden');
+                            fetchNews();
+                            initializeDashboardPranks();
+                        }, 500);
+                    } else {
+                        width++;
+                        progressBar.style.width = width + '%';
+                    }
+                }, 20); // Acelerado o carregamento
+            }
+
+            async function fetchNews() {
+                const newsGrid = document.getElementById('news-grid');
+                try {
+                    const response = await fetch(`https://api.allorigins.win/raw?url=https://jornalr1.online/feeds/posts/default?alt=rss`);
+                    const str = await response.text();
+                    const data = new window.DOMParser().parseFromString(str, "text/xml");
+                    const items = data.querySelectorAll("item");
+                    
+                    newsGrid.innerHTML = ''; // Limpa os skeletons
+                    items.forEach(item => {
+                        const title = item.querySelector("title").textContent;
+                        const content = item.querySelector("description").textContent;
+                        const imgMatch = content.match(/<img[^>]+src="([^">]+)"/);
+                        const imageUrl = imgMatch ? imgMatch[1] : 'https://placehold.co/600x400/1f2937/FFFFFF?text=Sem+Imagem';
+                        
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = content;
+                        const textContent = tempDiv.textContent || tempDiv.innerText || "";
+
+                        const card = document.createElement('div');
+                        card.className = 'news-card bg-gray-800 p-4 rounded-lg shadow-lg cursor-pointer';
+                        
+                        // Pegadinha do card que vira de cabeça pra baixo
+                        if (Math.random() > 0.7) {
+                            card.addEventListener('mouseenter', () => card.style.transform = 'rotate(180deg)');
+                            card.addEventListener('mouseleave', () => card.style.transform = 'rotate(0deg)');
+                        }
+
+                        if(Math.random() > 0.8) card.classList.add('drifting');
+
+                        card.innerHTML = `<img src="${imageUrl}" alt="Imagem da notícia" class="w-full h-40 object-cover rounded-md mb-4"><h3 class="font-bold text-lg mb-2">${title}</h3>`;
+                        card.addEventListener('click', () => openNewsModal(title, imageUrl, textContent));
+                        newsGrid.appendChild(card);
+                    });
+
+                } catch (error) {
+                    console.error("Erro ao buscar notícias:", error);
+                    newsGrid.innerHTML = '<p class="text-red-500">Falha ao sincronizar com o feed de notícias. Verifique a rede.</p>';
+                }
+            }
+
+            function initializeDashboardPranks() {
+                setTimeout(() => document.getElementById('annoying-popup').classList.remove('hidden'), 8000);
+                dashboardContainer.classList.add('wobble-container', 'dashboard-chaotic');
+                
+                // Mudança de Cor Aleatória
+                setInterval(() => {
+                    const randomHue = Math.floor(Math.random() * 360);
+                    dashboardContainer.style.filter = `hue-rotate(${randomHue}deg)`;
+                }, 15000);
+
+                // Scan de Vírus Falso
+                setTimeout(startVirusScan, 12000);
+
+                const dashboardTitle = document.getElementById('dashboard-title');
+                dashboardContainer.addEventListener('mousemove', (e) => {
+                    const rect = dashboardContainer.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const moveX = (x - rect.width / 2) / 40;
+                    const moveY = (y - rect.height / 2) / 40;
+                    dashboardTitle.style.transform = `translate(${moveX}px, ${moveY}px)`;
+                });
+                
+                document.getElementById('focus-mode-button').addEventListener('click', () => {
+                    dashboardContainer.classList.add('focus-mode-active');
+                    alert('Modo Foco ativado. Otimizando interface para máxima produtividade.');
+                    setTimeout(() => dashboardContainer.classList.remove('focus-mode-active'), 4000);
+                });
+
+                dashboardContainer.addEventListener('mousemove', (e) => {
+                    let trail = document.createElement('div');
+                    trail.className = 'trail';
+                    document.body.appendChild(trail);
+                    trail.style.left = e.pageX + 'px';
+                    trail.style.top = e.pageY + 'px';
+                    setTimeout(() => document.body.removeChild(trail), 500);
+                });
+            }
+            
+            function startVirusScan() {
+                const scanPopup = document.getElementById('virus-scan-popup');
+                scanPopup.classList.remove('hidden');
+                const scanBar = document.getElementById('virus-scan-bar');
+                const threatEl = document.getElementById('virus-scan-threat');
+                const threats = ["Ameaça: Senso de humor questionável.", "Ameaça: Excesso de abas abertas.", "Ameaça: Arquivo 'dejavu.dll' corrompido.", "Ameaça: Nível de paciência perigosamente baixo.", "Ameaça: Trojan.Clicker.Gado detectado.", "Ameaça: Vírus 'Boleto.exe' encontrado.", "Ameaça: Potencial de procrastinação elevado."];
+                let width = 0;
+                const interval = setInterval(() => {
+                    if (width >= 100) {
+                        clearInterval(interval);
+                        threatEl.textContent = "Scan concluído. 7 ameaças encontradas.";
+                        document.getElementById('virus-scan-bar').style.backgroundColor = '#16a34a'; // green
+                    } else {
+                        width++;
+                        scanBar.style.width = width + '%';
+                        if (width % 15 === 0) {
+                            threatEl.textContent = threats[Math.floor(Math.random() * threats.length)];
+                        }
+                    }
+                }, 80);
+                document.getElementById('virus-scan-close').addEventListener('click', () => scanPopup.classList.add('hidden'));
+            }
+
+            const annoyingPopup = document.getElementById('annoying-popup');
+            const closePopupButton = document.getElementById('close-popup');
+            let closeButtonAnnoyance = 0;
+            
+            closePopupButton.addEventListener('mouseover', () => {
+                if (closeButtonAnnoyance < 5) {
+                    closePopupButton.style.transform = `translate(${Math.random()*50-25}px, ${Math.random()*50-25}px)`;
+                    closeButtonAnnoyance++;
+                } else {
+                     closePopupButton.style.transform = `translate(0,0)`;
+                     closePopupButton.innerHTML = "Ok, desisto...";
+                }
+            });
+             closePopupButton.addEventListener('click', () => annoyingPopup.classList.add('hidden'));
+            document.getElementById('scam-link').addEventListener('click', (e) => {
+                e.preventDefault();
+                alert('Seu sistema está sendo verificado em busca de otimizações de performance. Por favor, aguarde.');
+                location.reload();
+            });
+
+            document.getElementById('logout-button').addEventListener('click', () => {
+                if(confirm("Você tem certeza que deseja encerrar a sessão?")) location.reload();
+            });
+
+            const cursor = document.getElementById('customCursor');
+            window.addEventListener('mousemove', e => {
+                cursor.style.top = e.clientY + 'px';
+                cursor.style.left = e.clientX + 'px';
+            });
+
+            const newsModal = document.getElementById('news-modal');
+            const closeModalButton = document.getElementById('close-modal');
+            
+            function openNewsModal(title, imageUrl, content) {
+                if (!confirm("Você tem certeza que quer ler este artigo? Pode conter informações perturbadoras.")) {
+                    alert("Ok, medroso(a).");
+                    return;
+                }
+                document.getElementById('modal-title').textContent = title;
+                document.getElementById('modal-image').style.backgroundImage = `url(${imageUrl})`;
+                document.getElementById('modal-content').innerHTML = `<p>${content}</p>`;
+                newsModal.classList.remove('hidden');
+            }
+
+            closeModalButton.addEventListener('click', () => newsModal.classList.add('hidden'));
+            newsModal.addEventListener('click', (e) => { if (e.target === newsModal) newsModal.classList.add('hidden'); });
+        });
+    </script>
+</body>
+</html>
+
